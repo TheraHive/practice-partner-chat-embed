@@ -69,10 +69,13 @@
       metadata: { character: character, module: module }
     });
 
-    setTimeout(() => {
+setTimeout(() => {
+      // Force the chat window open (overrides widget's display:none)
+      const chatWindow = document.querySelector('.chat-window');
       const toggle = document.querySelector('.chat-window-toggle');
+      if (chatWindow) {
+        chatWindow.style.removeProperty('display');
+        chatWindow.style.display = 'flex';
+      }
       if (toggle) toggle.style.display = 'none';
     }, 600);
-  </script>
-</body>
-</html>
