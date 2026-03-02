@@ -70,12 +70,20 @@
     });
 
 setTimeout(() => {
-      // Force the chat window open (overrides widget's display:none)
+      // Force chat window visible
       const chatWindow = document.querySelector('.chat-window');
-      const toggle = document.querySelector('.chat-window-toggle');
       if (chatWindow) {
         chatWindow.style.removeProperty('display');
         chatWindow.style.display = 'flex';
       }
+
+      // Override header text directly
+      const heading = document.querySelector('.chat-heading');
+      const subtitle = document.querySelector('.chat-header p, .chat-subtitle');
+      if (heading) heading.textContent = `Guide ${info.name} through the ${info.skill} Skill`;
+      if (subtitle) subtitle.textContent = '';
+
+      // Hide toggle button
+      const toggle = document.querySelector('.chat-window-toggle');
       if (toggle) toggle.style.display = 'none';
     }, 600);
