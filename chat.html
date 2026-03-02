@@ -12,34 +12,29 @@
     #chat-root { width: 100%; height: 100vh; position: relative; }
     .chat-window-wrapper { position: relative !important; width: 100% !important; height: 100vh !important; max-height: 100vh !important; }
     .chat-window {
+      display: flex !important; flex-direction: column !important;
       position: relative !important; bottom: auto !important; right: auto !important;
       top: auto !important; left: auto !important; width: 100% !important;
       height: 100vh !important; max-height: 100vh !important;
       border-radius: 0 !important; box-shadow: none !important;
-      display: flex !important; flex-direction: column !important;
     }
     .chat-body { flex: 1 1 auto !important; overflow-y: auto !important; min-height: 0 !important; }
     .chat-footer { flex-shrink: 0 !important; }
     .chat-window-toggle { display: none !important; }
-
-    /* Rounded message bubbles */
     .chat-message { border-radius: 18px !important; }
-
-    /* Gray input — override green */
-    .chat-footer textarea,
-    .chat-footer input[type="text"],
-    .chat-footer input {
-      border-color: #d1d5db !important;
-      outline-color: #9ca3af !important;
-      box-shadow: none !important;
+    .chat-message-from-user {
+      background-color: var(--chat--color-primary) !important;
+      color: #ffffff !important;
+      align-self: flex-end !important;
     }
-    .chat-footer textarea:focus,
-    .chat-footer input[type="text"]:focus,
-    .chat-footer input:focus {
-      border-color: #9ca3af !important;
-      box-shadow: none !important;
+    .chat-footer textarea, .chat-footer input[type="text"], .chat-footer input {
+      border-color: #d1d5db !important; box-shadow: none !important;
+    }
+    .chat-footer textarea:focus, .chat-footer input:focus {
+      border-color: #9ca3af !important; box-shadow: none !important; outline: none !important;
     }
     *:focus { --tw-ring-color: #9ca3af !important; }
+    .chat-footer button { background-color: var(--chat--color-primary) !important; }
   </style>
 </head>
 <body>
@@ -51,9 +46,7 @@
     const character = params.get('character') || 'nikki';
     const module    = params.get('module')    || 'distress-tolerance';
 
-    const characterInfo = {
-      'nikki': { name: 'Nikki', skill: 'Pros and Cons' }
-    };
+    const characterInfo = { 'nikki': { name: 'Nikki', skill: 'Pros and Cons' } };
     const info = characterInfo[character] || { name: character, skill: 'DBT' };
 
     document.body.setAttribute('data-module', module);
@@ -63,27 +56,21 @@
       target: '#chat-root',
       defaultOpen: true,
       showWelcomeScreen: false,
-      title: `Guide ${info.name} through the ${info.skill} Skill`,
-      subtitle: '',
-      inputPlaceholder: `Talk to ${info.name}...`,
       metadata: { character: character, module: module }
     });
 
-setTimeout(() => {
-      // Force chat window visible
+    setTimeout(() => {
       const chatWindow = document.querySelector('.chat-window');
-      if (chatWindow) {
-        chatWindow.style.removeProperty('display');
-        chatWindow.style.display = 'flex';
-      }
+      if (chatWindow) chatWindow.style.setProperty('display', 'flex', 'important');
 
-      // Override header text directly
       const heading = document.querySelector('.chat-heading');
-      const subtitle = document.querySelector('.chat-header p, .chat-subtitle');
-      if (heading) heading.textContent = `Guide ${info.name} through the ${info.skill} Skill`;
+      const subtitle = document.querySelector('.chat-header p');
+      if (heading) heading.textContent = 'Guide ' + info.name + ' through the ' + info.skill + ' Skill';
       if (subtitle) subtitle.textContent = '';
 
-      // Hide toggle button
       const toggle = document.querySelector('.chat-window-toggle');
       if (toggle) toggle.style.display = 'none';
-    }, 600);
+    }, 800);
+  </script>
+</body>
+</html>
