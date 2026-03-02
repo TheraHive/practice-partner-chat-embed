@@ -19,7 +19,16 @@
       border-radius: 0 !important; box-shadow: none !important;
     }
     .chat-body { flex: 1 1 auto !important; overflow-y: auto !important; min-height: 0 !important; }
-    .chat-footer { flex-shrink: 0 !important; }
+.chat-footer {
+  flex-shrink: 0 !important;
+  background-color: #ffffff !important;
+}
+
+.chat-footer textarea,
+.chat-footer input {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+}
     .chat-window-toggle { display: none !important; }
     .chat-message { border-radius: 18px !important; }
     .chat-message-from-user {
@@ -50,7 +59,8 @@
     const info = characterInfo[character] || { name: character, skill: 'DBT' };
 
     document.body.setAttribute('data-module', module);
-
+    
+localStorage.removeItem('n8n-chat/sessionId');
     createChat({
       webhookUrl: 'https://therahive.app.n8n.cloud/webhook/b4ab7fcf-8bb9-42cf-a444-bf6f8d010051/chat',
       target: '#chat-root',
