@@ -1,0 +1,61 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Capriola&family=Mulish:wght@400;500;600&display=swap');
+
+/* Base */
+body { font-family: 'Mulish', sans-serif; }
+.chat-heading, .chat-header h1, .chat-header h2, .chat-header h3 {
+  font-family: 'Capriola', sans-serif;
+}
+
+/* Distress Tolerance — coral #E99B86 */
+body[data-module="distress-tolerance"] {
+  --chat--color-primary:            #E99B86;
+  --chat--color-primary-shade-50:   #F6D6CE;
+  --chat--color-primary-shade-100:  #fce8e3;
+  --chat--header--background:       #E99B86;
+  --chat--header--color:            #ffffff;
+  --chat--message--bot--background: #F6D6CE;
+  --chat--toggle--background:       #E99B86;
+}
+
+/* Mindfulness — warm orange #FFC077 */
+body[data-module="mindfulness"] {
+  --chat--color-primary:            #FFC077;
+  --chat--color-primary-shade-50:   #FFE9CF;
+  --chat--color-primary-shade-100:  #fff4e6;
+  --chat--header--background:       #FFC077;
+  --chat--header--color:            #ffffff;
+  --chat--message--bot--background: #FFE9CF;
+  --chat--toggle--background:       #FFC077;
+}
+
+/* Emotion Regulation — blue-gray #829DA9 */
+body[data-module="emotion-regulation"] {
+  --chat--color-primary:            #829DA9;
+  --chat--color-primary-shade-50:   #C7D3DA;
+  --chat--color-primary-shade-100:  #dce5e9;
+  --chat--header--background:       #829DA9;
+  --chat--header--color:            #ffffff;
+  --chat--message--bot--background: #C7D3DA;
+  --chat--toggle--background:       #829DA9;
+}
+
+/* Interpersonal Effectiveness — sage green #ADC8C0 */
+body[data-module="interpersonal-effectiveness"] {
+  --chat--color-primary:            #ADC8C0;
+  --chat--color-primary-shade-50:   #E0EAE7;
+  --chat--color-primary-shade-100:  #edf3f1;
+  --chat--header--background:       #ADC8C0;
+  --chat--header--color:            #ffffff;
+  --chat--message--bot--background: #E0EAE7;
+  --chat--toggle--background:       #ADC8C0;
+}
+```
+
+**Steps:**
+1. In `practice-partner-chat-embed` → **Add file → Create new file** → name it `therahive.css` → paste above → commit
+2. Then edit `chat.html` → replace all with the updated version I gave you above → commit
+
+Once both are in and the Actions build goes green, test it with:
+```
+https://therahive.github.io/practice-partner-chat-embed/chat.html?character=nikki&module=distress-tolerance
