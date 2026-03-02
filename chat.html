@@ -8,32 +8,38 @@
   <link href="therahive.css" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden; background: #ffffff;
-    }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #ffffff; }
     #chat-root { width: 100%; height: 100vh; position: relative; }
-    .chat-window-wrapper {
-      position: relative !important;
-      width: 100% !important; height: 100vh !important;
-      max-height: 100vh !important;
-    }
+    .chat-window-wrapper { position: relative !important; width: 100% !important; height: 100vh !important; max-height: 100vh !important; }
     .chat-window {
-      position: relative !important;
-      bottom: auto !important; right: auto !important;
-      top: auto !important; left: auto !important;
-      width: 100% !important; height: 100vh !important;
-      max-height: 100vh !important;
+      position: relative !important; bottom: auto !important; right: auto !important;
+      top: auto !important; left: auto !important; width: 100% !important;
+      height: 100vh !important; max-height: 100vh !important;
       border-radius: 0 !important; box-shadow: none !important;
       display: flex !important; flex-direction: column !important;
     }
-    .chat-body {
-      flex: 1 1 auto !important;
-      overflow-y: auto !important;
-      min-height: 0 !important;
-    }
+    .chat-body { flex: 1 1 auto !important; overflow-y: auto !important; min-height: 0 !important; }
     .chat-footer { flex-shrink: 0 !important; }
     .chat-window-toggle { display: none !important; }
+
+    /* Rounded message bubbles */
+    .chat-message { border-radius: 18px !important; }
+
+    /* Gray input — override green */
+    .chat-footer textarea,
+    .chat-footer input[type="text"],
+    .chat-footer input {
+      border-color: #d1d5db !important;
+      outline-color: #9ca3af !important;
+      box-shadow: none !important;
+    }
+    .chat-footer textarea:focus,
+    .chat-footer input[type="text"]:focus,
+    .chat-footer input:focus {
+      border-color: #9ca3af !important;
+      box-shadow: none !important;
+    }
+    *:focus { --tw-ring-color: #9ca3af !important; }
   </style>
 </head>
 <body>
@@ -45,7 +51,11 @@
     const character = params.get('character') || 'nikki';
     const module    = params.get('module')    || 'distress-tolerance';
 
-    // Apply module theme to body
+    const characterInfo = {
+      'nikki': { name: 'Nikki', skill: 'Pros and Cons' }
+    };
+    const info = characterInfo[character] || { name: character, skill: 'DBT' };
+
     document.body.setAttribute('data-module', module);
 
     createChat({
@@ -53,6 +63,9 @@
       target: '#chat-root',
       defaultOpen: true,
       showWelcomeScreen: false,
+      title: `Guide ${info.name} through the ${info.skill} Skill`,
+      subtitle: '',
+      inputPlaceholder: `Talk to ${info.name}...`,
       metadata: { character: character, module: module }
     });
 
