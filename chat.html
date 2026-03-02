@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Practice Partner</title>
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden; background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    #chat-root { width: 100%; height: 100vh; position: relative; }
+    .chat-window, [class*="chat-window"] {
+      position: relative !important; bottom: auto !important;
+      right: auto !important; top: auto !important; left: auto !important;
+      width: 100% !important; height: 100vh !important;
+      max-height: 100vh !important; border-radius: 0 !important;
+      box-shadow: none !important; display: flex !important;
+      flex-direction: column !important;
+    }
+    .chat-toggle, [class*="chat-toggle"] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="chat-root"></div>
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const character = params.get('character') || 'nikki';
+    const module    = params.get('module')    || 'distress-tolerance';
+
+    createChat({
+      webhookUrl: 'https://therahive.app.n8n.cloud/webhook/b4ab7fcf-8bb9-42cf-a444-bf6f8d010051/chat',
+      target: '#chat-root',
+      defaultOpen: true,
+      showWelcomeScreen: false,
+      metadata: { character: character, module: module }
+    });
+
+    setTimeout(() => {
+      const win    = document.querySelector('#chat-root > div');
+      const toggle = document.querySelector('[class*="toggle"]');
+      if (win) {
+        win.style.cssText = 'position:relative !important; bottom:auto !important; right:auto !important; width:100% !important; height:100vh !important; max-height:100vh !important; border-radius:0 !important; box-shadow:none !important;';
+      }
+      if (toggle) toggle.style.display = 'none';
+    }, 600);
+  </script>
+</body>
+</html>
