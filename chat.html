@@ -104,9 +104,6 @@
     // Apply module color theme
     document.body.setAttribute('data-module', module);
 
-    // Clear any previous session so the widget starts fresh every time
-    localStorage.removeItem('n8n-chat/sessionId');
-
     createChat({
       webhookUrl: 'https://therahive.app.n8n.cloud/webhook/b4ab7fcf-8bb9-42cf-a444-bf6f8d010051/chat',
       target: '#chat-root',
