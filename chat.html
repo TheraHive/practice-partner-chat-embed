@@ -23,11 +23,15 @@
       border-radius: 0 !important; box-shadow: none !important;
     }
 
-    /* Center the header title */
-    .chat-heading {
-      text-align: center !important;
-      width: 100% !important;
-    }
+/* Center the header title */
+.chat-header {
+  justify-content: center !important;
+}
+.chat-heading {
+  display: block !important;
+  text-align: center !important;
+  width: 100% !important;
+}
 
     /* Body scrolls, footer stays pinned */
     .chat-body {
@@ -125,26 +129,29 @@
     observer.observe(document.getElementById('chat-root'), { childList: true, subtree: true });
     setTimeout(() => observer.disconnect(), 5000);
 
-    // Post-mount fixes
-    setTimeout(() => {
-      const chatWindow = document.querySelector('.chat-window');
-      if (chatWindow) chatWindow.style.setProperty('display', 'flex', 'important');
+  setTimeout(() => {
+  const chatWindow = document.querySelector('.chat-window');
+  if (chatWindow) chatWindow.style.setProperty('display', 'flex', 'important');
 
-      const heading = document.querySelector('.chat-heading');
-      const subtitle = document.querySelector('.chat-header p');
-      if (heading) heading.textContent = 'Guide ' + info.name + ' through the ' + info.skill + ' Skill';
-      if (subtitle) subtitle.textContent = '';
+  const heading = document.querySelector('.chat-heading');
+  const subtitle = document.querySelector('.chat-header p');
+  if (heading) heading.textContent = 'Guide ' + info.name + ' through the ' + info.skill + ' Skill';
+  if (heading) { heading.style.textAlign = 'center'; heading.style.width = '100%'; }
+  if (subtitle) subtitle.textContent = '';
 
-      const toggle = document.querySelector('.chat-window-toggle');
-      if (toggle) toggle.style.display = 'none';
+  const textarea = document.querySelector('.chat-footer textarea, .chat-footer input');
+  if (textarea) textarea.setAttribute('placeholder', 'Chat with ' + info.name + '…');
 
-      document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
-        const text = msg.textContent.trim();
-        if (text === 'Hi there! 👋' || text.includes('My name is Nathan')) {
-          msg.remove();
-        }
-      });
-    }, 800);
+  const toggle = document.querySelector('.chat-window-toggle');
+  if (toggle) toggle.style.display = 'none';
+
+  document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
+    const text = msg.textContent.trim();
+    if (text === 'Hi there! 👋' || text.includes('My name is Nathan')) {
+      msg.remove();
+    }
+  });
+}, 800);
   </script>
 </body>
 </html>
