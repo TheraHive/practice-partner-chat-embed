@@ -28,7 +28,7 @@
 
     :root {
       --chat--window--border-radius: 16px;
-      --chat--header--padding: 0.875rem 1rem;
+      --chat--header--padding: 1.25rem 1rem;
       --chat--heading--font-size: 1rem;
       --chat--subtitle--font-size: 0px;
       --chat--subtitle--line-height: 0;
@@ -80,6 +80,21 @@
       padding-left: 0.75rem !important;
       padding-right: 0.75rem !important;
       padding-bottom: 0.5rem !important;
+    }
+
+    /* Force ALL four corners — widget only rounds the diagonal by default */
+    .chat-header {
+      border-top-left-radius: 16px !important;
+      border-top-right-radius: 16px !important;
+    }
+    .chat-footer {
+      border-bottom-left-radius: 16px !important;
+      border-bottom-right-radius: 16px !important;
+    }
+
+    /* Input left padding — .chat-input IS the textarea element directly */
+    .chat-input {
+      padding-left: 0.75rem !important;
     }
 
     .chat-header p { display: none !important; }
@@ -136,7 +151,7 @@
         header.style.display = 'flex';
         header.style.alignItems = 'center';
         header.style.justifyContent = 'center';
-        header.style.padding = '0.875rem 1rem';
+        header.style.padding = '1.25rem 1rem';
       }
 
       const heading = document.querySelector('.chat-heading');
