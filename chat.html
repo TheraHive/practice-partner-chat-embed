@@ -51,8 +51,6 @@
       max-height: 100vh !important;
       max-width: 100% !important;
       box-shadow: none !important;
-      overflow: hidden !important;
-      border-radius: 16px !important;
     }
 
     .chat-body {
@@ -65,12 +63,20 @@
       flex-shrink: 0 !important;
       padding-left: 0.75rem !important;
       padding-right: 0.75rem !important;
+      padding-bottom: 0.5rem !important;
     }
 
     .chat-header {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
+    }
+
+    .chat-heading {
+      text-align: center !important;
+      width: 100% !important;
+      white-space: normal !important;
+      overflow: visible !important;
     }
 
     .chat-header p { display: none !important; }
@@ -111,7 +117,6 @@
       metadata: { character, module }
     });
 
-    // Remove Nathan default messages
     const observer = new MutationObserver(() => {
       document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
         const t = msg.textContent.trim();
@@ -121,7 +126,6 @@
     observer.observe(document.getElementById('chat-root'), { childList: true, subtree: true });
     setTimeout(() => observer.disconnect(), 5000);
 
-    // Header text + window visibility
     setTimeout(() => {
       const heading = document.querySelector('.chat-heading');
       if (heading) heading.textContent = `Guide ${info.name} through the ${info.skill} Skill`;
@@ -136,7 +140,6 @@
       if (win) win.style.setProperty('display', 'flex', 'important');
     }, 400);
 
-    // Placeholder: MutationObserver wins the race against N8N config fetch
     const wantedPlaceholder = `Chat with ${info.name}…`;
 
     const fixPlaceholder = () => {
