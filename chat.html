@@ -37,6 +37,8 @@
       width: 100% !important;
       height: 100vh !important;
       max-height: 100vh !important;
+      overflow: hidden !important;
+      border-radius: 16px !important;
     }
 
     .chat-window {
@@ -49,6 +51,8 @@
       max-height: 100vh !important;
       max-width: 100% !important;
       box-shadow: none !important;
+      overflow: hidden !important;
+      border-radius: 16px !important;
     }
 
     .chat-body {
@@ -57,7 +61,11 @@
       min-height: 0 !important;
     }
 
-    .chat-footer { flex-shrink: 0 !important; }
+    .chat-footer {
+      flex-shrink: 0 !important;
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
 
     .chat-header {
       display: flex !important;
@@ -128,8 +136,7 @@
       if (win) win.style.setProperty('display', 'flex', 'important');
     }, 400);
 
-    // Placeholder: widget fetches config from N8N after load and overwrites it.
-    // MutationObserver watches reactively so we always win.
+    // Placeholder: MutationObserver wins the race against N8N config fetch
     const wantedPlaceholder = `Chat with ${info.name}…`;
 
     const fixPlaceholder = () => {
