@@ -7,38 +7,31 @@
   <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
   <link href="therahive.css" rel="stylesheet" />
   <style>
-    /* ─── Reset ─────────────────────────────────────────── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
-    #chat-root { width: 100%; height: 100vh; }
+    #chat-root { width: 100%; height: 100%; }
 
-    /* ─── Feed the widget's OWN CSS variables ─────────────
-       These are the official customization hooks the widget
-       reads internally — much more reliable than !important
-       overrides on output classes.
-    ──────────────────────────────────────────────────────── */
     :root {
-      /* Round the whole widget */
-      --chat--border-radius: 16px;
-
-      /* Header: zero out top/bottom padding so text centers */
+      --chat--window--border-radius: 16px;
       --chat--header--padding: 0 1rem;
-      --chat--header--font-size: 0.9rem;
-      --chat--header--font-weight: 600;
-      --chat--header--text-align: center;
-
-      /* Message bubbles */
+      --chat--heading--font-size: 1rem;
+      --chat--subtitle--font-size: 0px;
+      --chat--subtitle--line-height: 0;
       --chat--message--border-radius: 18px;
-      --chat--message--padding: 0.6rem 1rem;
-
-      /* Input area */
-      --chat--input--padding: 0.75rem 0.75rem 0.75rem 0.75rem;
-
-      /* Toggle button — hidden but zero it out anyway */
       --chat--toggle--size: 0px;
+      --chat--toggle--width: 0px;
+      --chat--toggle--height: 0px;
     }
 
-    /* ─── Layout: make the widget fill the iframe ─────── */
+    body {
+      --chat--message--user--background: var(--chat--color-primary);
+      --chat--message--user--color: #ffffff;
+      --chat--input--send--button--background: var(--chat--color-primary);
+      --chat--input--send--button--color: #ffffff;
+      --chat--input--send--button--background-hover: var(--chat--color-primary);
+      --chat--input--send--button--color-hover: #ffffff;
+    }
+
     .chat-window-wrapper {
       position: relative !important;
       width: 100% !important;
@@ -54,6 +47,7 @@
       width: 100% !important;
       height: 100vh !important;
       max-height: 100vh !important;
+      max-width: 100% !important;
       box-shadow: none !important;
     }
 
@@ -63,62 +57,19 @@
       min-height: 0 !important;
     }
 
-    .chat-footer  { flex-shrink: 0 !important; }
+    .chat-footer { flex-shrink: 0 !important; }
 
-    /* ─── Header: force explicit height & flex centering ─ */
     .chat-header {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      min-height: 52px !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
     }
 
-    /* The <p> subtitle — hide it */
-    .chat-header > p,
     .chat-header p { display: none !important; }
 
-    /* Heading sits in the middle */
-    .chat-heading {
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1.2 !important;
-      text-align: center !important;
-    }
-
-    /* ─── Input area ──────────────────────────────────── */
-    /* Add clearance on left so text isn't clipped by border-radius */
-    .chat-input,
-    .chat-inputs {
-      padding-left: 1rem !important;
-      padding-right: 1rem !important;
-    }
-
-    .chat-input textarea,
-    .chat-input input,
-    .chat-inputs textarea,
-    .chat-inputs input {
-      padding-left: 0.75rem !important;
-    }
-
-    /* ─── Message bubbles ─────────────────────────────── */
-    .chat-message-from-user {
-      background-color: var(--chat--color-primary) !important;
-      color: #ffffff !important;
-      align-self: flex-end !important;
-      margin-right: 8px !important;
-    }
-
     .chat-message-from-bot  { margin-left: 8px !important; }
+    .chat-message-from-user { margin-right: 8px !important; }
 
-    /* Send button */
-    .chat-footer button[type="submit"],
-    .chat-footer button {
-      background-color: var(--chat--color-primary) !important;
-    }
-
-    /* ─── Hide toggle / bubble launcher ──────────────── */
     .chat-window-toggle { display: none !important; }
   </style>
 </head>
@@ -132,7 +83,6 @@
     const character = params.get('character') || 'nikki';
     const module    = params.get('module')    || 'distress-tolerance';
 
-    // ── Add new characters here ──────────────────────────
     const characterInfo = {
       'nikki': {
         name: 'Nikki',
@@ -142,7 +92,6 @@
     };
     const info = characterInfo[character] || { name: character, skill: 'DBT', initialMessage: '' };
 
-    // Apply module colour theme (read by therahive.css)
     document.body.setAttribute('data-module', module);
 
     createChat({
@@ -154,7 +103,6 @@
       metadata: { character, module }
     });
 
-    // ── Remove Nathan default messages ───────────────────
     const observer = new MutationObserver(() => {
       document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
         const t = msg.textContent.trim();
@@ -164,32 +112,22 @@
     observer.observe(document.getElementById('chat-root'), { childList: true, subtree: true });
     setTimeout(() => observer.disconnect(), 5000);
 
-    // ── One-time DOM fixups after widget mounts ──────────
-    // Only runs once, 300ms after load — sets things the
-    // CSS variables don't cover (header text, placeholder).
     setTimeout(() => {
-      // Header text
       const heading = document.querySelector('.chat-heading');
-      if (heading) {
-        heading.textContent = `Guide ${info.name} through the ${info.skill} Skill`;
-      }
+      if (heading) heading.textContent = `Guide ${info.name} through the ${info.skill} Skill`;
 
-      // Subtitle line
       const sub = document.querySelector('.chat-header p');
       if (sub) sub.remove();
 
-      // Input placeholder
-      const input = document.querySelector('.chat-input textarea, .chat-input input, .chat-inputs textarea, .chat-inputs input');
+      const input = document.querySelector('.chat-input textarea, .chat-inputs textarea, .chat-input input');
       if (input) input.setAttribute('placeholder', `Chat with ${info.name}…`);
 
-      // Hide toggle
       const toggle = document.querySelector('.chat-window-toggle');
       if (toggle) toggle.style.display = 'none';
 
-      // Force window open
       const win = document.querySelector('.chat-window');
       if (win) win.style.setProperty('display', 'flex', 'important');
-    }, 300);
+    }, 400);
   </script>
 </body>
 </html>
