@@ -21,14 +21,13 @@
       height: 100%;
       overflow: hidden;
       background: transparent;
-      border-radius: 16px;
     }
 
     #chat-root { width: 100%; height: 100%; }
 
     :root {
-      --chat--window--border-radius: 16px;
-      --chat--header--padding: 1.25rem 1rem;
+      --chat--window--border-radius: 0;
+      --chat--header--padding: 0.875rem 1rem;
       --chat--heading--font-size: 1rem;
       --chat--subtitle--font-size: 0px;
       --chat--subtitle--line-height: 0;
@@ -82,24 +81,13 @@
       padding-bottom: 0.5rem !important;
     }
 
-    /* Force ALL four corners — widget only rounds the diagonal by default */
-    .chat-header {
-      border-top-left-radius: 16px !important;
-      border-top-right-radius: 16px !important;
-    }
-    .chat-footer {
-      border-bottom-left-radius: 16px !important;
-      border-bottom-right-radius: 16px !important;
-    }
-
-    /* Input left padding — .chat-input IS the textarea element directly */
-    .chat-input {
-      padding-left: 0.75rem !important;
-    }
+    .chat-input { padding-left: 0.75rem !important; }
 
     .chat-header p { display: none !important; }
+
     .chat-message-from-bot  { margin-left: 8px !important; }
     .chat-message-from-user { margin-right: 8px !important; }
+
     .chat-window-toggle { display: none !important; }
   </style>
 </head>
@@ -133,6 +121,7 @@
       metadata: { character, module }
     });
 
+    // Remove Nathan default messages
     const observer = new MutationObserver(() => {
       document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
         const t = msg.textContent.trim();
