@@ -89,6 +89,11 @@
     .chat-message-from-user { margin-right: 8px !important; }
 
     .chat-window-toggle { display: none !important; }
+
+    .chat-window  { border-radius: 0 !important; }
+    .chat-header  { border-radius: 0 !important; }
+    .chat-footer  { border-radius: 0 !important; }
+    .chat-body    { border-radius: 0 !important; }
   </style>
 </head>
 <body>
@@ -112,13 +117,23 @@
 
     document.body.setAttribute('data-module', module);
 
+    // Fetch system prompt from characters/<character>.md
+    // Falls back to empty string if file not found
+    let systemMessage = '';
+    try {
+      const res = await fetch(`characters/${character}.md`);
+      if (res.ok) systemMessage = await res.text();
+    } catch (e) {
+      console.warn('Could not load system message for', character);
+    }
+
     createChat({
       webhookUrl: 'https://therahive.app.n8n.cloud/webhook/b4ab7fcf-8bb9-42cf-a444-bf6f8d010051/chat',
       target: '#chat-root',
       defaultOpen: true,
       showWelcomeScreen: false,
       initialMessages: info.initialMessage ? [info.initialMessage] : [],
-      metadata: { character, module }
+      metadata: { character, module, systemMessage }
     });
 
     // Remove Nathan default messages
