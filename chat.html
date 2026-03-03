@@ -8,86 +8,37 @@
   <link href="therahive.css" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #ffffff;
-    }
-
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #ffffff; }
     #chat-root { width: 100%; height: 100vh; position: relative; }
-
-    /* Outer wrapper */
-    .chat-window-wrapper {
-      position: relative !important;
-      width: 100% !important;
-      height: 100vh !important;
-      max-height: 100vh !important;
-    }
-
-    /* Force chat window visible and filling the page */
+    .chat-window-wrapper { position: relative !important; width: 100% !important; height: 100vh !important; max-height: 100vh !important; }
     .chat-window {
-      display: flex !important;
-      flex-direction: column !important;
-      position: relative !important;
-      bottom: auto !important;
-      right: auto !important;
-      top: auto !important;
-      left: auto !important;
-      width: 100% !important;
-      height: 100vh !important;
-      max-height: 100vh !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
+      display: flex !important; flex-direction: column !important;
+      position: relative !important; bottom: auto !important; right: auto !important;
+      top: auto !important; left: auto !important; width: 100% !important;
+      height: 100vh !important; max-height: 100vh !important;
+      border-radius: 0 !important; box-shadow: none !important;
     }
-
-    /* Body scrolls, footer stays pinned */
-    .chat-body {
-      flex: 1 1 auto !important;
-      overflow-y: auto !important;
-      min-height: 0 !important;
-    }
-
+    .chat-body { flex: 1 1 auto !important; overflow-y: auto !important; min-height: 0 !important; }
     .chat-footer { flex-shrink: 0 !important; }
-
-    /* Hide toggle button */
     .chat-window-toggle { display: none !important; }
-
-    /* Rounded message bubbles */
     .chat-message { border-radius: 18px !important; }
-
-    /* User message bubble — use module primary color */
     .chat-message-from-user {
       background-color: var(--chat--color-primary) !important;
       color: #ffffff !important;
       align-self: flex-end !important;
     }
-
-    /* Gray input border — override green */
-    .chat-footer textarea,
-    .chat-footer input[type="text"],
-    .chat-footer input {
-      border-color: #d1d5db !important;
-      box-shadow: none !important;
+    .chat-footer textarea, .chat-footer input[type="text"], .chat-footer input {
+      border-color: #d1d5db !important; box-shadow: none !important;
     }
-    .chat-footer textarea:focus,
-    .chat-footer input:focus {
-      border-color: #9ca3af !important;
-      box-shadow: none !important;
-      outline: none !important;
+    .chat-footer textarea:focus, .chat-footer input:focus {
+      border-color: #9ca3af !important; box-shadow: none !important; outline: none !important;
     }
     *:focus { --tw-ring-color: #9ca3af !important; }
-
-    /* Send button — use module primary color */
-    .chat-footer button {
-      background-color: var(--chat--color-primary) !important;
-    }
+    .chat-footer button { background-color: var(--chat--color-primary) !important; }
   </style>
 </head>
 <body>
   <div id="chat-root"></div>
-
   <script type="module">
     import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
@@ -97,9 +48,13 @@
 
     // Add a new entry here for each Practice Partner character
     const characterInfo = {
-      'nikki': { name: 'Nikki', skill: 'Pros and Cons' }
+      'nikki': {
+        name: 'Nikki',
+        skill: 'Pros and Cons',
+        initialMessage: "Hi… I just had a really awful experience in class and I'm kind of freaking out. Can you help me figure out what to do?"
+      }
     };
-    const info = characterInfo[character] || { name: character, skill: 'DBT' };
+    const info = characterInfo[character] || { name: character, skill: 'DBT', initialMessage: '' };
 
     // Apply module color theme
     document.body.setAttribute('data-module', module);
@@ -109,7 +64,7 @@
       target: '#chat-root',
       defaultOpen: true,
       showWelcomeScreen: false,
-      initialMessages: [],
+      initialMessages: info.initialMessage ? [info.initialMessage] : [],
       metadata: { character: character, module: module }
     });
 
@@ -123,28 +78,21 @@
       });
     });
     observer.observe(document.getElementById('chat-root'), { childList: true, subtree: true });
-    // Stop watching after 5 seconds — Nikki's real messages are safe after that
     setTimeout(() => observer.disconnect(), 5000);
 
     // Post-mount fixes
     setTimeout(() => {
-      // Force chat window visible (widget sets display:none when closed)
       const chatWindow = document.querySelector('.chat-window');
-      if (chatWindow) {
-        chatWindow.style.setProperty('display', 'flex', 'important');
-      }
+      if (chatWindow) chatWindow.style.setProperty('display', 'flex', 'important');
 
-      // Override header text directly via DOM
       const heading = document.querySelector('.chat-heading');
       const subtitle = document.querySelector('.chat-header p');
       if (heading) heading.textContent = 'Guide ' + info.name + ' through the ' + info.skill + ' Skill';
       if (subtitle) subtitle.textContent = '';
 
-      // Keep toggle hidden
       const toggle = document.querySelector('.chat-window-toggle');
       if (toggle) toggle.style.display = 'none';
 
-      // Belt-and-suspenders: scrub any Nathan messages that snuck in before observer caught them
       document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
         const text = msg.textContent.trim();
         if (text === 'Hi there! 👋' || text.includes('My name is Nathan')) {
