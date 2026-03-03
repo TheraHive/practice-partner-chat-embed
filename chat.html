@@ -23,6 +23,8 @@
       width: 100% !important;
       height: 100vh !important;
       max-height: 100vh !important;
+      border-radius: 16px !important;
+      overflow: hidden !important;
     }
 
     .chat-window {
@@ -41,20 +43,6 @@
       box-shadow: none !important;
     }
 
-    .chat-header {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      min-height: 56px !important;
-      padding: 8px 16px !important;
-    }
-
-    .chat-heading {
-      display: block !important;
-      text-align: center !important;
-      width: 100% !important;
-    }
-
     .chat-body {
       flex: 1 1 auto !important;
       overflow-y: auto !important;
@@ -62,24 +50,7 @@
       padding: 12px 16px !important;
     }
 
-    .chat-footer {
-      flex-shrink: 0 !important;
-    }
-
-    .chat-footer textarea,
-    .chat-footer input[type="text"],
-    .chat-footer input {
-      padding-left: 12px !important;
-      border-color: #d1d5db !important;
-      box-shadow: none !important;
-    }
-
-    .chat-footer textarea:focus,
-    .chat-footer input:focus {
-      border-color: var(--chat--color-primary) !important;
-      box-shadow: 0 0 0 2px var(--chat--color-primary-shade-50) !important;
-      outline: none !important;
-    }
+    .chat-footer { flex-shrink: 0 !important; }
 
     .chat-window-toggle { display: none !important; }
 
@@ -141,21 +112,56 @@
     setTimeout(() => observer.disconnect(), 5000);
 
     setTimeout(() => {
+      // Force window visible
       const chatWindow = document.querySelector('.chat-window');
-      if (chatWindow) chatWindow.style.setProperty('display', 'flex', 'important');
+      if (chatWindow) {
+        chatWindow.style.setProperty('display', 'flex', 'important');
+        chatWindow.style.borderRadius = '16px';
+        chatWindow.style.overflow = 'hidden';
+      }
 
+      // Round the outer wrapper too
+      const wrapper = document.querySelector('.chat-window-wrapper');
+      if (wrapper) {
+        wrapper.style.borderRadius = '16px';
+        wrapper.style.overflow = 'hidden';
+      }
+
+      // Vertically + horizontally center header
+      const header = document.querySelector('.chat-header');
+      if (header) {
+        header.style.display = 'flex';
+        header.style.alignItems = 'center';
+        header.style.justifyContent = 'center';
+        header.style.minHeight = '56px';
+        header.style.padding = '8px 16px';
+      }
+
+      // Set heading text and center it
       const heading = document.querySelector('.chat-heading');
+      if (heading) {
+        heading.textContent = 'Guide ' + info.name + ' through the ' + info.skill + ' Skill';
+        heading.style.textAlign = 'center';
+        heading.style.width = '100%';
+        heading.style.display = 'block';
+      }
+
+      // Clear subtitle
       const subtitle = document.querySelector('.chat-header p');
-      if (heading) heading.textContent = 'Guide ' + info.name + ' through the ' + info.skill + ' Skill';
-      if (heading) { heading.style.textAlign = 'center'; heading.style.width = '100%'; }
       if (subtitle) subtitle.textContent = '';
 
+      // Fix input padding and placeholder
       const textarea = document.querySelector('.chat-footer textarea, .chat-footer input');
-      if (textarea) textarea.setAttribute('placeholder', 'Chat with ' + info.name + '…');
+      if (textarea) {
+        textarea.setAttribute('placeholder', 'Chat with ' + info.name + '…');
+        textarea.style.paddingLeft = '12px';
+      }
 
+      // Hide toggle
       const toggle = document.querySelector('.chat-window-toggle');
       if (toggle) toggle.style.display = 'none';
 
+      // Remove Nathan messages
       document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
         const text = msg.textContent.trim();
         if (text === 'Hi there! 👋' || text.includes('My name is Nathan')) {
