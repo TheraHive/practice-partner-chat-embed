@@ -13,7 +13,7 @@
 
     :root {
       --chat--window--border-radius: 16px;
-      --chat--header--padding: 0 1rem;
+      --chat--header--padding: 0.875rem 1rem;
       --chat--heading--font-size: 1rem;
       --chat--subtitle--font-size: 0px;
       --chat--subtitle--line-height: 0;
@@ -103,6 +103,7 @@
       metadata: { character, module }
     });
 
+    // Remove Nathan default messages
     const observer = new MutationObserver(() => {
       document.querySelectorAll('.chat-message-from-bot').forEach(msg => {
         const t = msg.textContent.trim();
@@ -112,6 +113,7 @@
     observer.observe(document.getElementById('chat-root'), { childList: true, subtree: true });
     setTimeout(() => observer.disconnect(), 5000);
 
+    // Header text + window visibility
     setTimeout(() => {
       const heading = document.querySelector('.chat-heading');
       if (heading) heading.textContent = `Guide ${info.name} through the ${info.skill} Skill`;
@@ -119,15 +121,34 @@
       const sub = document.querySelector('.chat-header p');
       if (sub) sub.remove();
 
-      const input = document.querySelector('.chat-input textarea, .chat-inputs textarea, .chat-input input');
-      if (input) input.setAttribute('placeholder', `Chat with ${info.name}…`);
-
       const toggle = document.querySelector('.chat-window-toggle');
       if (toggle) toggle.style.display = 'none';
 
       const win = document.querySelector('.chat-window');
       if (win) win.style.setProperty('display', 'flex', 'important');
     }, 400);
+
+    // Placeholder: widget fetches config from N8N after load and overwrites it.
+    // MutationObserver watches reactively so we always win.
+    const wantedPlaceholder = `Chat with ${info.name}…`;
+
+    const fixPlaceholder = () => {
+      const input = document.querySelector(
+        '.chat-input textarea, .chat-inputs textarea, .chat-input input'
+      );
+      if (input && input.getAttribute('placeholder') !== wantedPlaceholder) {
+        input.setAttribute('placeholder', wantedPlaceholder);
+      }
+    };
+
+    const placeholderObserver = new MutationObserver(fixPlaceholder);
+    placeholderObserver.observe(document.getElementById('chat-root'), {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['placeholder']
+    });
+    setTimeout(() => placeholderObserver.disconnect(), 6000);
   </script>
 </body>
 </html>
