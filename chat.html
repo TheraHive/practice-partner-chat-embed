@@ -120,17 +120,7 @@
     // Force a fresh session on every page load
     // The widget stores sessionId in localStorage — clearing it ensures
     // each visit starts a new conversation with clean memory
-    localStorage.removeItem('n8n-chat-session-id');
-
-    // Fetch system prompt from character/<character>.md
-    // Falls back to empty string if file not found
-    let systemMessage = '';
-    try {
-      const res = await fetch(`character/${character}.md`);
-      if (res.ok) systemMessage = await res.text();
-    } catch (e) {
-      console.warn('Could not load system message for', character);
-    }
+    localStorage.removeItem('n8n-chat/sessionId');
 
     createChat({
       webhookUrl: 'https://therahive.app.n8n.cloud/webhook/b4ab7fcf-8bb9-42cf-a444-bf6f8d010051/chat',
@@ -138,7 +128,7 @@
       defaultOpen: true,
       showWelcomeScreen: false,
       initialMessages: info.initialMessage ? [info.initialMessage] : [],
-      metadata: { character, module, systemMessage }
+      metadata: { character, module }
     });
 
     // Remove Nathan default messages
