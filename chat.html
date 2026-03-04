@@ -185,6 +185,19 @@
       attributes: true, attributeFilter: ['placeholder']
     });
     setTimeout(() => placeholderObserver.disconnect(), 6000);
+
+    // "Start Over" handler — reloads the page to reset the session
+    const startOverObserver = new MutationObserver(() => {
+      document.querySelectorAll('.chat-message-from-user').forEach(msg => {
+        if (msg.textContent.trim().toLowerCase() === 'start over' && !msg.dataset.handled) {
+          msg.dataset.handled = 'true';
+          setTimeout(() => location.reload(), 800);
+        }
+      });
+    });
+    startOverObserver.observe(document.getElementById('chat-root'), {
+      childList: true, subtree: true
+    });
   </script>
 </body>
 
