@@ -117,6 +117,11 @@
 
     document.body.setAttribute('data-module', module);
 
+    // Force a fresh session on every page load
+    // The widget stores sessionId in localStorage — clearing it ensures
+    // each visit starts a new conversation with clean memory
+    localStorage.removeItem('n8n-chat-session-id');
+
     // Fetch system prompt from characters/<character>.md
     // Falls back to empty string if file not found
     let systemMessage = '';
