@@ -122,11 +122,11 @@
     // each visit starts a new conversation with clean memory
     localStorage.removeItem('n8n-chat-session-id');
 
-    // Fetch system prompt from characters/<character>.md
+    // Fetch system prompt from character/<character>.md
     // Falls back to empty string if file not found
     let systemMessage = '';
     try {
-      const res = await fetch(`characters/${character}.md`);
+      const res = await fetch(`character/${character}.md`);
       if (res.ok) systemMessage = await res.text();
     } catch (e) {
       console.warn('Could not load system message for', character);
