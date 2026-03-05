@@ -186,6 +186,20 @@
     });
     setTimeout(() => placeholderObserver.disconnect(), 6000);
 
+    // Prevent scrollIntoView from propagating to the parent page.
+    // The n8n widget calls scrollIntoView() on new messages, which escapes
+    // the iframe and causes the parent blog page to scroll unexpectedly.
+    // Instead, we intercept it and scroll the chat body container directly.
+    const originalScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function(options) {
+      const chatBody = document.querySelector('.chat-body');
+      if (chatBody && chatBody.contains(this)) {
+        chatBody.scrollTop = chatBody.scrollHeight;
+      } else {
+        originalScrollIntoView.call(this, options);
+      }
+    };
+
     // "Start Over" handler — reloads the page to reset the session
     const startOverObserver = new MutationObserver(() => {
       document.querySelectorAll('.chat-message-from-user').forEach(msg => {
