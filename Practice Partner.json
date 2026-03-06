@@ -1,0 +1,901 @@
+{
+  "name": "Practice Partner",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {
+          "allowedOrigins": "https://therahive.github.io, https://therahive.webflow.io, https://therahive.com",
+          "loadPreviousSession": "notSupported",
+          "responseMode": "lastNode"
+        }
+      },
+      "id": "8477608d-e7b6-4f8b-8425-191e754a6028",
+      "name": "Chat Interface",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        128,
+        -80
+      ],
+      "webhookId": "b4ab7fcf-8bb9-42cf-a444-bf6f8d010051"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "={{ $json.systemMessage }}"
+        }
+      },
+      "id": "6114f730-f55f-4946-b260-e93e16d3f937",
+      "name": "Claude Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        688,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "id": "c0f67853-aea2-441f-b76a-352616fd1a5d",
+      "name": "Claude Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        528
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "WfG6H0aqgwJPh8aD",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "4e92b304-065a-4d0d-877a-32ddb571a080",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1e262383-0ef1-40c5-bed8-ee25a291c986",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        464
+      ],
+      "id": "c6544228-3102-481e-9015-841b55f9c455",
+      "name": "Return Clean Message (Normal)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const agentOutput = $input.first().json.output;\nconst case1 = agentOutput.includes('[SESSION_END_CASE1]');\nconst case2 = agentOutput.includes('[SESSION_END_CASE2]');\n\nlet cleanMessage = agentOutput\n  .replace('[SESSION_END_CASE1]', '')\n  .replace('[SESSION_END_CASE2]', '')\n  .trim();\n\n// Normalize any markdown link where LLM wrapped URL in angle brackets\n// e.g. [text](<https://...>) → [text](https://...)\ncleanMessage = cleanMessage\n  .replace(/\\[([^\\]]+)\\]\\(<([^>]+)>\\)/g, '[$1]($2)');\n\nconst sessionStatus = case1 ? 'case1' : case2 ? 'case2' : '';\nconst isExit = case1 || case2;\n\nreturn [{ json: { output: cleanMessage, sessionStatus, isExit } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        304
+      ],
+      "id": "45d37127-ae90-4296-8cf2-4e2493fccd43",
+      "name": "Strip Exit Tag"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3bd275ae-8490-42b5-81f1-6fd4640d08c0",
+              "leftValue": "={{ $json.isExit }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1104,
+        304
+      ],
+      "id": "b9c33923-5316-409b-88c9-39353749c1aa",
+      "name": "Exit Triggered?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const action = $('Chat Interface').first().json.action;\nconst chatInput = $('Chat Interface').first().json.chatInput;\n\nif (action === 'loadPreviousSession' || !chatInput || chatInput.trim() === '') {\n  return [];\n}\n\nconst character = $('Chat Interface').first().json.metadata?.character || 'nikki';\nconst systemMessage = $('Fetch Partner Prompt').first().json.data || '';\n\nreturn [{ json: {\n  systemMessage: systemMessage,\n  character: character,\n  chatInput: chatInput\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        304
+      ],
+      "id": "bc45526e-649e-4c34-a42f-fb8f6d84a5dd",
+      "name": "Load System Prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "const exitMessage = $('Strip Exit Tag').first().json.output;\nconst feedback = $('Generate Feedback').first().json.text;\n\nconst combined = exitMessage + '\\n\\n---\\n\\n**A note from your coach:** ' + feedback;\n\nreturn [{ json: { output: combined } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        80
+      ],
+      "id": "082c43a3-0a06-431e-b5c0-536b3e8b566a",
+      "name": "Combine Messages"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sessionStatus = $('Strip Exit Tag').first().json.sessionStatus;\nconst exitMessage = $('Strip Exit Tag').first().json.output;\nconst characterPrompt = $('Load System Prompt').first().json.systemMessage || '';\n\n// Extract just the skill section — drop personality, voice, backstory\nconst skillMatch = characterPrompt.match(/## THE SKILL YOU ARE PRACTICING[\\s\\S]*/);\nconst skillContext = skillMatch ? skillMatch[0].trim() : characterPrompt;\n\nconst messages = $('Fetch Conversation').all();\nconst conversationText = messages\n  .map(m => `${m.json.role === 'user' ? 'Human' : 'AI'}: ${m.json.content}`)\n  .join('\\n');\n\nlet feedbackPrompt;\nif (sessionStatus === 'case1') {\n  feedbackPrompt = `You are a TheraHive DBT skills coach reviewing a practice session. A student was guiding a practice partner through a DBT skill exercise, but the session ended early because their guidance went off track.\n\nHere is the skill context for this session:\n${skillContext}\n\nHere is the conversation:\n${conversationText}\n\nWrite a short, warm coaching note (2-3 sentences) to the student. Acknowledge their effort, briefly explain what specifically went off track based on the conversation and the skill steps, and give one concrete suggestion for next time. Conversational, no bullet points, no headers. Start with \"A note from your TheraHive Coach:\"`;\n} else {\n  feedbackPrompt = `You are a TheraHive DBT skills coach reviewing a practice session. A student successfully guided a practice partner through a complete DBT skill exercise.\n\nHere is the skill context for this session:\n${skillContext}\n\nHere is the conversation:\n${conversationText}\n\nWrite a short, warm coaching note (2-3 sentences) celebrating their success. Reference one specific thing they did well based on the actual conversation. Encourage continued practice. Conversational, no bullet points, no headers. Start with \"A note from your TheraHive Coach:\"`;\n}\n\nreturn [{ json: { feedbackPrompt, exitMessage, sessionStatus } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        80
+      ],
+      "id": "f170bbdd-1fda-4472-8a4d-9ad45b97032e",
+      "name": "Build Feedback Prompt"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.feedbackPrompt }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1616,
+        80
+      ],
+      "id": "6697f9b7-bd53-490a-9868-92213591b7ae",
+      "name": "Generate Feedback"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1616,
+        288
+      ],
+      "id": "32d1dd26-32c4-458f-b57c-c95c52500731",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "WfG6H0aqgwJPh8aD",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { output: $('Combine Messages').first().json.output } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        80
+      ],
+      "id": "ce8fb4f6-9bef-435c-bcd2-5b60040b77a5",
+      "name": "Restore Output 2"
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=session_id",
+              "fieldValue": "={{ $json.sessionId }}"
+            },
+            {
+              "fieldId": "=role",
+              "fieldValue": "user"
+            },
+            {
+              "fieldId": "=content",
+              "fieldValue": "={{ $json.chatInput }}"
+            },
+            {
+              "fieldId": "=character",
+              "fieldValue": "={{ $json.metadata.character }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        272,
+        -80
+      ],
+      "id": "cba0bc9a-4a7d-41b9-a497-21c52cbc0a36",
+      "name": "Log User Message",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/TheraHive/practice-partner-prompts/main/character/nikki.md",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        336,
+        304
+      ],
+      "id": "1be7693b-8fa5-40a3-94cb-9ec297b2c09c",
+      "name": "Fetch Partner Prompt",
+      "credentials": {
+        "githubApi": {
+          "id": "wMsdNlTjvMrTkAlk",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=session_id",
+              "fieldValue": "={{ $('Chat Interface').first().json.sessionId }}"
+            },
+            {
+              "fieldId": "=role",
+              "fieldValue": "assistant"
+            },
+            {
+              "fieldId": "=content",
+              "fieldValue": "={{ $('Strip Exit Tag').first().json.output }}"
+            },
+            {
+              "fieldId": "=character",
+              "fieldValue": "={{ $('Chat Interface').first().json.metadata.character }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        80
+      ],
+      "id": "5327cd71-25c6-4e73-bdc6-faf07a2f9fcd",
+      "name": "Log Partner Message 2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=session_id",
+              "fieldValue": "={{ $('Chat Interface').first().json.sessionId }}"
+            },
+            {
+              "fieldId": "=role",
+              "fieldValue": "assistant"
+            },
+            {
+              "fieldId": "=content",
+              "fieldValue": "={{ $('Strip Exit Tag').first().json.output }}"
+            },
+            {
+              "fieldId": "=character",
+              "fieldValue": "={{ $('Chat Interface').first().json.metadata.character }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        464
+      ],
+      "id": "c356b5d7-9307-4f0d-9603-0b4010b301d0",
+      "name": "Log Partner Message 1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "sessions",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=session_id",
+              "fieldValue": "={{ $('Chat Interface').first().json.sessionId }}"
+            },
+            {
+              "fieldId": "=character",
+              "fieldValue": "={{ $('Chat Interface').first().json.metadata.character }}"
+            },
+            {
+              "fieldId": "=module",
+              "fieldValue": "={{ $('Chat Interface').first().json.metadata.module }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        144,
+        304
+      ],
+      "id": "7675f18d-f7f3-4704-88c4-1dc748bc2d49",
+      "name": "Log Open Session",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://cvdhdhvdvohbwbfkcbrk.supabase.co/rest/v1/sessions?session_id=eq.{{ $('Chat Interface').first().json.sessionId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ended_at\": \"{{ new Date().toISOString() }}\",\n  \"session_status\": \"{{ $('Strip Exit Tag').first().json.sessionStatus }}\",\n  \"total_exchanges\": {{ $('Fetch Conversation').all().length }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2288,
+        80
+      ],
+      "id": "8e0228d5-654c-4cc4-8374-f014f1184f5b",
+      "name": "Log Close Session",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://cvdhdhvdvohbwbfkcbrk.supabase.co/rest/v1/messages?session_id=eq.{{ $('Chat Interface').first().json.sessionId }}&order=created_at.asc&select=role,content",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1280,
+        80
+      ],
+      "id": "88060fd2-cb40-415e-85ba-e8939132d795",
+      "name": "Fetch Conversation",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    output: \"We've had a great session! I've used up all my available practice time for now — come back when you're ready to keep going. 😊\",\n    sessionStatus: '',\n    isExit: false\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        -80
+      ],
+      "id": "1555da67-6678-4f06-940a-1e32a935a332",
+      "name": "Return Limit Message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2cf6877c-c724-4b0c-9a99-a7604753e1b0",
+              "leftValue": "={{ $('Count Messages').all().length }}",
+              "rightValue": 40,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        -80
+      ],
+      "id": "614a343f-1c0b-4dc3-bb78-e15bdc5ef3b5",
+      "name": "At Limit?"
+    },
+    {
+      "parameters": {
+        "url": "=https://cvdhdhvdvohbwbfkcbrk.supabase.co/rest/v1/messages?session_id=eq.{{ $('Chat Interface').first().json.sessionId }}&select=id",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        -80
+      ],
+      "id": "ef6d1caf-f185-4dc6-b1ef-5cbf067a5330",
+      "name": "Count Messages",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { output: $('Return Clean Message (Normal)').first().json.output } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        464
+      ],
+      "id": "7645cb3c-8590-4aa6-8d65-4da19074612f",
+      "name": "Restore Output 1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { output: $('Return Limit Message').first().json.output } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -80
+      ],
+      "id": "5cfac041-99b4-4771-88a0-fc3162bf3802",
+      "name": "Restore Output 3"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://cvdhdhvdvohbwbfkcbrk.supabase.co/rest/v1/sessions?session_id=eq.{{ $('Chat Interface').first().json.sessionId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ended_at\": \"{{ new Date().toISOString() }}\",\n  \"session_status\": \"limit_reached\",\n  \"total_exchanges\": {{ $('Count Messages').all().length }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1008,
+        -80
+      ],
+      "id": "9f976f41-5129-4bbe-a1dd-787547a6573a",
+      "name": "Log Close Session 2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "jfhibZVbRNYfBvSY",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Interface": {
+      "main": [
+        [
+          {
+            "node": "Log User Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Claude Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Claude Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Agent": {
+      "main": [
+        [
+          {
+            "node": "Strip Exit Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strip Exit Tag": {
+      "main": [
+        [
+          {
+            "node": "Exit Triggered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exit Triggered?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Conversation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Clean Message (Normal)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load System Prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Feedback Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Feedback": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Feedback",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Clean Message (Normal)": {
+      "main": [
+        [
+          {
+            "node": "Log Partner Message 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Messages": {
+      "main": [
+        [
+          {
+            "node": "Log Partner Message 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log User Message": {
+      "main": [
+        [
+          {
+            "node": "Count Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Partner Prompt": {
+      "main": [
+        [
+          {
+            "node": "Load System Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Partner Message 2": {
+      "main": [
+        [
+          {
+            "node": "Log Close Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Partner Message 1": {
+      "main": [
+        [
+          {
+            "node": "Restore Output 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Open Session": {
+      "main": [
+        [
+          {
+            "node": "Fetch Partner Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Close Session": {
+      "main": [
+        [
+          {
+            "node": "Restore Output 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Conversation": {
+      "main": [
+        [
+          {
+            "node": "Build Feedback Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "At Limit?": {
+      "main": [
+        [
+          {
+            "node": "Return Limit Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Open Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Messages": {
+      "main": [
+        [
+          {
+            "node": "At Limit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Output 1": {
+      "main": [
+        []
+      ]
+    },
+    "Return Limit Message": {
+      "main": [
+        [
+          {
+            "node": "Log Close Session 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Close Session 2": {
+      "main": [
+        [
+          {
+            "node": "Restore Output 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "Ewv7jOLEy1DP5ny9GzeRJ",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "6eec210f-04d9-4e2e-881f-b6c88eaeb60c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc4a78e71374aba33b8de02b6d0ff72d30d8f6cde518f6dfe24ece2f7b45321b"
+  },
+  "id": "4tbFb2NVtjvYuqzr",
+  "tags": []
+}
