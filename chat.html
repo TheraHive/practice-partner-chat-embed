@@ -104,16 +104,17 @@
 
     const params = new URLSearchParams(window.location.search);
     const character = params.get('character') || 'nikki';
-    const module    = params.get('module')    || 'distress-tolerance';
 
     const characterInfo = {
       'nikki': {
         name: 'Nikki',
+        module: 'distress-tolerance',
         skill: 'Pros and Cons',
         initialMessage: "Hi… I just had a really awful experience in class and I'm kind of freaking out. Can you help me figure out what to do?"
       }
     };
-    const info = characterInfo[character] || { name: character, skill: 'DBT', initialMessage: '' };
+    const info = characterInfo[character] || { name: character, module: 'distress-tolerance', skill: 'DBT', initialMessage: '' };
+    const module = info.module;
 
     document.body.setAttribute('data-module', module);
 
